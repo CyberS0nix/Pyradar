@@ -34,19 +34,29 @@ def print_help() -> None:
     console.print("  python -m pyradar 192.168.1.0/24\n")
 
 
-def print_results(online_hosts: list) -> None:
+def print_results(hosts: list) -> None:
     table = Table(
-        title=f"Scan Results — {len(online_hosts)} host(s) online",
+        title=f"Scan Results — {len(hosts)} host(s) online",
         box=box.ROUNDED,
         style="bold",
         header_style="bold magenta",
     )
-    table.add_column("#",       style="dim",   width=4)
-    table.add_column("IP Address", style="cyan")
-    table.add_column("Status",     style="green")
+    table.add_column("#",          style="dim",    width=4)
+    table.add_column("IP Address", style="cyan",   width=16)
+    table.add_column("Hostname",   style="white",  width=30)
+    table.add_column("MAC",        style="yellow", width=20)
+    table.add_column("OS Guess",   style="green",  width=16)
+    table.add_column("Status",     style="green",  width=10)
 
-    for i, host in enumerate(online_hosts, 1):
-        table.add_row(str(i), host, "● Online")
+    for i, host in enumerate(hosts, 1):
+        table.add_row(
+            str(i),
+            host["ip"],
+            host["hostname"],
+            host["mac"],
+            host["os"],
+            "● Online",
+        )
 
     console.print()
     console.print(table)

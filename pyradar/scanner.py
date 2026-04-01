@@ -3,6 +3,7 @@ import platform
 import re
 import concurrent.futures
 from pyradar.ui import console, make_progress
+from pyradar.resolver import enrich_host
 
 
 def ping(ip: str):
@@ -35,7 +36,7 @@ def ping(ip: str):
 def scan_network(network, max_workers: int = 100) -> list:
     hosts = list(network.hosts())
     total = len(hosts)
-    online = []
+    online_ips = []
 
     console.print(f"\n[bold]Scanning[/bold] [cyan]{network}[/cyan] — [dim]{total} hosts[/dim]\n")
 
@@ -49,7 +50,7 @@ def scan_network(network, max_workers: int = 100) -> list:
                     try:
                         result = future.result()
                         if result:
-                            online.append(result)
+                            online_ips.append(result)
                             console.print(f"  [green]●[/green] [cyan]{result}[/cyan] is online")
                     except Exception:
                         continue
@@ -57,4 +58,13 @@ def scan_network(network, max_workers: int = 100) -> list:
     except KeyboardInterrupt:
         console.print("\n[yellow][!] Scan interrupted by user.[/yellow]")
 
-    return sorted(online, key=lambda x: tuple(map(int, x.split("."))))
+    # Sort IPs
+    online_ips = sorted(online_ips, key=lambda x: tuple(map(int, x.split("."))))
+
+    # Enrich each host with hostname, MAC, OS
+    console.print("\n[bold]Enriching host data...[/bold]\n")
+    enriched = []
+    with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+        enriched = list(executor.map(enrich_host, online_ips))
+
+    return enriched
