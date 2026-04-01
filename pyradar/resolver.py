@@ -65,3 +65,51 @@ def enrich_host(ip: str) -> dict:
         "os":       guess_os(ip),
     }
   
+
+COMMON_PORTS = {
+    21:   "FTP",
+    22:   "SSH",
+    23:   "Telnet",
+    25:   "SMTP",
+    53:   "DNS",
+    80:   "HTTP",
+    110:  "POP3",
+    135:  "RPC",
+    139:  "NetBIOS",
+    143:  "IMAP",
+    443:  "HTTPS",
+    445:  "SMB",
+    3306: "MySQL",
+    3389: "RDP",
+    5900: "VNC",
+    8080: "HTTP-Alt",
+    8443: "HTTPS-Alt",
+}
+
+
+def scan_ports(ip: str) -> list:
+    """TCP connect scan on common ports."""
+    open_ports = []
+    for port in COMMON_PORTS:
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            s.settimeout(0.5)
+            if s.connect_ex((ip, port)) == 0:
+                open_ports.append((port, COMMON_PORTS[port]))
+            s.close()
+        except Exception:
+            pass
+    return open_ports
+
+
+def enrich_host(ip: str) -> dict:
+    """Run all enrichment functions for a single host."""
+    ports = scan_ports(ip)
+    return {
+        "ip":       ip,
+        "hostname": resolve_hostname(ip),
+        "mac":      get_mac_address(ip),
+        "os":       guess_os(ip),
+        "ports":    ports,
+    }
+    
