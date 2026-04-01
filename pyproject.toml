@@ -1,0 +1,13 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "pyradar"
+version = "2.0.0"
+description = "Python network radar scanner"
+requires-python = ">=3.8"
+dependencies = ["rich", "scapy"]
+
+[project.scripts]
+pyradar = "pyradar.cli:main"
