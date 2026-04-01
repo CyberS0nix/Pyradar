@@ -43,18 +43,25 @@ def print_results(hosts: list) -> None:
     )
     table.add_column("#",          style="dim",    width=4)
     table.add_column("IP Address", style="cyan",   width=16)
-    table.add_column("Hostname",   style="white",  width=30)
+    table.add_column("Hostname",   style="white",  width=20)
     table.add_column("MAC",        style="yellow", width=20)
-    table.add_column("OS Guess",   style="green",  width=16)
+    table.add_column("OS Guess",   style="green",  width=14)
+    table.add_column("Open Ports", style="red",    width=30)
     table.add_column("Status",     style="green",  width=10)
 
     for i, host in enumerate(hosts, 1):
+        # Format ports as "80 (HTTP), 443 (HTTPS)"
+        ports_str = ", ".join(
+            f"{p} ({s})" for p, s in host["ports"]
+        ) if host["ports"] else "None"
+
         table.add_row(
             str(i),
             host["ip"],
             host["hostname"],
             host["mac"],
             host["os"],
+            ports_str,
             "● Online",
         )
 
