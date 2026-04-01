@@ -2,6 +2,7 @@ import subprocess
 import platform
 import re
 import concurrent.futures
+from pyradar.ui import console, make_progress
 
 
 def ping(ip: str):
@@ -32,27 +33,28 @@ def ping(ip: str):
 
 
 def scan_network(network, max_workers: int = 100) -> list:
-    print(f"\n[*] Scanning network: {network}")
-    print(f"[*] Total hosts to probe: {network.num_addresses - 2}\n")
-
+    hosts = list(network.hosts())
+    total = len(hosts)
     online = []
 
+    console.print(f"\n[bold]Scanning[/bold] [cyan]{network}[/cyan] — [dim]{total} hosts[/dim]\n")
+
     try:
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-            futures = {
-                executor.submit(ping, str(ip)): str(ip)
-                for ip in network.hosts()
-            }
-            for future in concurrent.futures.as_completed(futures):
-                try:
-                    result = future.result()
-                    if result:
-                        online.append(result)
-                        print(f"  [+] Host online: {result}")
-                except Exception:
-                    continue
+        with make_progress(total) as progress:
+            task = progress.add_task("Scanning...", total=total)
+            with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+                futures = {executor.submit(ping, str(ip)): str(ip) for ip in hosts}
+                for future in concurrent.futures.as_completed(futures):
+                    progress.advance(task)
+                    try:
+                        result = future.result()
+                        if result:
+                            online.append(result)
+                            console.print(f"  [green]●[/green] [cyan]{result}[/cyan] is online")
+                    except Exception:
+                        continue
 
     except KeyboardInterrupt:
-        print("\n[!] Scan interrupted by user. Returning partial results...")
+        console.print("\n[yellow][!] Scan interrupted by user.[/yellow]")
 
     return sorted(online, key=lambda x: tuple(map(int, x.split("."))))
