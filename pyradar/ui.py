@@ -16,7 +16,7 @@ def print_banner() -> None:
  |_|    \__, |_| \_\__,_|\__,_|\__,_|_|
           |___/
     """
-    console.print(Panel(banner, subtitle="[dim]❚█══  CyerS0nix  ══█❚[/dim]", style="bold green"))
+    console.print(Panel(banner, subtitle="[dim]❚█══  CyberS0nix  ══█❚[/dim]", style="bold green"))
 
 
 def print_help() -> None:
